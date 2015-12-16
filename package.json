@@ -22,5 +22,12 @@
   "bugs": {
     "url": "https://github.com/finnp/osx-pkg/issues"
   },
-  "homepage": "https://github.com/finnp/osx-pkg"
+  "homepage": "https://github.com/finnp/osx-pkg",
+  "dependencies": {
+    "cpio-fs": "^1.0.0",
+    "cpio-stream": "^1.2.1",
+    "mkbom": "^2.1.0",
+    "pump": "^1.0.1",
+    "xar": "^1.1.0"
+  }
 }
