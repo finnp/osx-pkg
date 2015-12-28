@@ -7,6 +7,7 @@ var xar = require('xar')
 var pump = require('pump')
 var debug = require('debug')('osx-pkg')
 var duplexify = require('duplexify')
+var parallel = require('run-parallel')
 
 var payloadTemplate =
   '<pkg-info format-version="2" identifier="{{identifier}}" version="1.3.0" install-location="/" relocatable="true" auth="root">' +
@@ -16,9 +17,6 @@ var payloadTemplate =
 module.exports = pack
 
 function pack (dir, opts) {
-  // Create Payload
-  //  ~ $ ( cd root && find . | cpio -o --format odc --owner 0:80 | gzip -c ) > tmp/base.pkg/Payload
-
   var output = duplexify()
 
   var pack = cpiofs.pack(dir, { map: function (header) {
@@ -27,40 +25,51 @@ function pack (dir, opts) {
     return header
   }})
 
-  var todo = 2 // make sure both streams are finished
-  pump(
-    pack,
-    zlib.createGzip(),
-    fs.createWriteStream(opts.tmpDir + '/base.pkg/Payload'),
-    function () {
-      todo--
-      if (todo === 0) createPackageInfo()
-    }
-  )
-
-  // count files and sizes by extracting the packed archive...
   var totalSize = 0
   var numFiles = 0
-  var extract = cpio.extract()
-  extract.on('entry', function (header, stream, cb) {
-    totalSize += header.size
-    numFiles++
-    stream.on('end', function () {
-      cb()
-    })
-    stream.resume()
-  })
 
-  pump(
-    pack,
-    extract,
-    function () {
-      todo--
-      if (todo === 0) createPackageInfo()
+  parallel([
+    function (cb) {
+      fs.mkdir(opts.tmpDir + '/base.pkg', cb)
+    },
+    function (cb) {
+      fs.mkdir(opts.tmpDir + '/Resources', cb)
     }
-  )
+  ], createPayload)
 
-  function createPackageInfo () {
+  function createPayload () {
+    parallel([
+      function (cb) {
+        pump(
+          pack,
+          zlib.createGzip(),
+          fs.createWriteStream(opts.tmpDir + '/base.pkg/Payload'),
+          cb
+        )
+      },
+      function (cb) {
+        // count files and sizes by extracting the packed archive...
+        var extract = cpio.extract()
+        extract.on('entry', function (header, stream, cb) {
+          totalSize += header.size
+          numFiles++
+          stream.on('end', function () {
+            cb()
+          })
+          stream.resume()
+        })
+
+        pump(
+          pack,
+          extract,
+          cb
+        )
+      }
+    ], createPackageInfo)
+  }
+
+  function createPackageInfo (err) {
+    if (err) return output.destroy(err)
     debug('Create PackageInfo', numFiles, 'files', totalSize, 'bytes')
     var packageInfo = payloadTemplate
       .replace('{{identifier}}', opts.identifier)

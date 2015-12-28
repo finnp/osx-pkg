@@ -1,3 +1,0 @@
-<pkg-info format-version="2" identifier="org.nodejs.node.pkg" version="1.3.0" install-location="/" relocatable="true" auth="root">
-  <payload installKBytes="1" numberOfFiles="3"/>
-</pkg-info>
