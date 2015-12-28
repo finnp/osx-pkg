@@ -11,7 +11,7 @@ var parallel = require('run-parallel')
 var path = require('path')
 
 var payloadTemplate =
-  '<pkg-info format-version="2" identifier="{{identifier}}" version="1.3.0" install-location="/" relocatable="true" auth="root">' +
+  '<pkg-info format-version="2" identifier="{{identifier}}" version="1.3.0" install-location="{{installLocation}}" relocatable="true" auth="root">' +
   '\n  <payload installKBytes="{{installKBytes}}" numberOfFiles="{{numberOfFiles}}"/>' +
   '\n</pkg-info>'
 
@@ -19,6 +19,7 @@ module.exports = pack
 
 function pack (dir, opts) {
   dir = path.resolve(process.cwd(), dir)
+  var installLocation = opts.installLocation || '/'
   var output = duplexify()
 
   var pack = cpiofs.pack(dir, { map: function (header) {
@@ -77,6 +78,7 @@ function pack (dir, opts) {
       .replace('{{identifier}}', opts.identifier)
       .replace('{{installKBytes}}', Math.ceil(totalSize / 1000))
       .replace('{{numberOfFiles}}', numFiles)
+      .replace('{{installLocation}}', installLocation)
     fs.writeFile(opts.tmpDir + '/base.pkg/PackageInfo', packageInfo, createBOMFile)
   }
 
