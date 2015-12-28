@@ -8,6 +8,7 @@ var pump = require('pump')
 var debug = require('debug')('osx-pkg')
 var duplexify = require('duplexify')
 var parallel = require('run-parallel')
+var path = require('path')
 
 var payloadTemplate =
   '<pkg-info format-version="2" identifier="{{identifier}}" version="1.3.0" install-location="/" relocatable="true" auth="root">' +
@@ -17,6 +18,7 @@ var payloadTemplate =
 module.exports = pack
 
 function pack (dir, opts) {
+  dir = path.resolve(process.cwd(), dir)
   var output = duplexify()
 
   var pack = cpiofs.pack(dir, { map: function (header) {
@@ -82,7 +84,7 @@ function pack (dir, opts) {
   // ~ $ mkbom -u 0 -g 80 root tmp/base.pkg/Bom
     debug('Create BOMFile...')
     pump(
-      mkbom('./build/root', {uid: 0, gid: 80}),
+      mkbom(dir, {uid: 0, gid: 80}),
       fs.createWriteStream(opts.tmpDir + '/base.pkg/Bom'),
       createDistributionFile
     )

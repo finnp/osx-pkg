@@ -31,6 +31,9 @@
     "mkbom": "^2.1.0",
     "pump": "^1.0.1",
     "run-parallel": "^1.1.4",
-    "xar": "^1.1.0"
+    "xar": "^1.1.1"
+  },
+  "devDependencies": {
+    "tape": "^4.4.0"
   }
 }
