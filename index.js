@@ -15,6 +15,21 @@ var payloadTemplate =
   '\n  <payload installKBytes="{{installKBytes}}" numberOfFiles="{{numberOfFiles}}"/>' +
   '\n</pkg-info>'
 
+var distributionTemplate =
+  `<?xml version="1.0" encoding="utf-8"?>
+<installer-script minSpecVersion="1.000000" authoringTool="com.apple.PackageMaker" authoringToolVersion="3.0.3" authoringToolBuild="174">
+    <title>{{title}}</title>
+    <options customize="never" allow-external-scripts="no"/>
+    <domains enable_anywhere="true"/>
+    <choices-outline>
+        <line choice="choice1"/>
+    </choices-outline>
+    <choice id="choice1" title="base">
+        <pkg-ref id="{{identifier}}"/>
+    </choice>
+    <pkg-ref id="{{identifier}}" installKBytes="{{installKBytes}}" version="1.3.0" auth="Root">#base.pkg</pkg-ref>
+</installer-script>`
+
 module.exports = pack
 
 function pack (dir, opts) {
@@ -94,15 +109,12 @@ function pack (dir, opts) {
 
   function createDistributionFile () {
     debug('Create Distribution file...')
-    fs.readFile(__dirname + '/Distribution', function (err, distributionTemplate) {
-      if (err) throw err
-      var distribution = distributionTemplate.toString()
-        .replace(new RegExp('{{identifier}}', 'g'), opts.identifier)
-        .replace('{{title}}', opts.title)
-        .replace('{{installKBytes}}', Math.ceil(totalSize / 1000))
-      fs.writeFile(opts.tmpDir + '/Distribution', distribution, function () {
-        createXar()
-      })
+    var distribution = distributionTemplate
+      .replace(new RegExp('{{identifier}}', 'g'), opts.identifier)
+      .replace('{{title}}', opts.title)
+      .replace('{{installKBytes}}', Math.ceil(totalSize / 1000))
+    fs.writeFile(opts.tmpDir + '/Distribution', distribution, function () {
+      createXar()
     })
   }
 
