@@ -5,6 +5,7 @@ var xar = require('xar')
 var test = require('tape')
 
 var opts = {
+  dir: __dirname + '/build/root',
   identifier: 'org.nodejs.node.pkg',
   title: 'node'
 }
@@ -13,7 +14,7 @@ var testInstaller = __dirname + '/TestInstaller.pkg'
 
 test('create installer and inspect packed pkg', function (t) {
   t.plan(6)
-  var osxPack = pack(__dirname + '/build/root', opts)
+  var osxPack = pack(opts)
   pump(
     osxPack,
     fs.createWriteStream(testInstaller),

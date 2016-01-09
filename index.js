@@ -35,10 +35,16 @@ var distributionTemplate =
 
 module.exports = pack
 
-function pack (dir, opts) {
-  dir = path.resolve(process.cwd(), dir)
+function pack (opts) {
   var installLocation = opts.installLocation || '/'
   var output = duplexify()
+  if (!opts.dir) {
+    process.nextTick(function () {
+      output.emit('error', new Error('Missed specify the input dir'))
+    })
+    return output
+  }
+  var dir = path.resolve(process.cwd(), opts.dir)
   var removeTmpDir = false
 
   var pack = cpiofs.pack(dir, { map: function (header) {
