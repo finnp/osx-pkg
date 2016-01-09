@@ -6,16 +6,16 @@ var test = require('tape')
 
 var opts = {
   identifier: 'org.nodejs.node.pkg',
-  title: 'node',
-  tmpDir: __dirname + '/build/flat' // default to unique tmpDir
+  title: 'node'
 }
 
 var testInstaller = __dirname + '/TestInstaller.pkg'
 
 test('create installer and inspect packed pkg', function (t) {
   t.plan(6)
+  var osxPack = pack(__dirname + '/build/root', opts)
   pump(
-    pack(__dirname + '/build/root', opts),
+    osxPack,
     fs.createWriteStream(testInstaller),
     function (err) {
       if (err) throw err

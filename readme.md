@@ -18,7 +18,3 @@ createPackage('./root', opts)
 
 The packaging is not done in a complete streaming fashion, but
 a temporary folder will be used.
-
-TODO: Expose this step as its own API
-
-TODO: Create permissions on folders like Applications, etc.

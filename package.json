@@ -4,7 +4,7 @@
   "description": "create mac osx flat packages (.pkg)",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test/test.js"
   },
   "repository": {
     "type": "git",
@@ -28,8 +28,9 @@
     "cpio-stream": "^1.2.3",
     "debug": "^2.2.0",
     "duplexify": "^3.4.2",
-    "mkbom": "^2.1.3",
+    "mkbom": "^2.1.4",
     "pump": "^1.0.1",
+    "rimraf": "^2.5.0",
     "run-parallel": "^1.1.4",
     "xar": "^1.1.1"
   },
