@@ -19,19 +19,19 @@ var payloadTemplate =
   '\n</pkg-info>'
 
 var distributionTemplate =
-  `<?xml version="1.0" encoding="utf-8"?>
-<installer-script minSpecVersion="1.000000" authoringTool="com.apple.PackageMaker" authoringToolVersion="3.0.3" authoringToolBuild="174">
-    <title>{{title}}</title>
-    <options customize="never" allow-external-scripts="no"/>
-    <domains enable_anywhere="true"/>
-    <choices-outline>
-        <line choice="choice1"/>
-    </choices-outline>
-    <choice id="choice1" title="base">
-        <pkg-ref id="{{identifier}}"/>
-    </choice>
-    <pkg-ref id="{{identifier}}" installKBytes="{{installKBytes}}" version="1.3.0" auth="Root">#base.pkg</pkg-ref>
-</installer-script>`
+  '<?xml version="1.0" encoding="utf-8"?>\n' +
+  '<installer-script minSpecVersion="1.000000" authoringTool="com.apple.PackageMaker" authoringToolVersion="3.0.3" authoringToolBuild="174">\n' +
+  '    <title>{{title}}</title>\n' +
+  '    <options customize="never" allow-external-scripts="no"/>\n' +
+  '    <domains enable_anywhere="true"/>\n' +
+  '    <choices-outline>\n' +
+  '        <line choice="choice1"/>\n' +
+  '    </choices-outline>\n' +
+  '    <choice id="choice1" title="base">\n' +
+  '        <pkg-ref id="{{identifier}}"/>\n' +
+  '    </choice>' +
+  '    <pkg-ref id="{{identifier}}" installKBytes="{{installKBytes}}" version="1.3.0" auth="Root">#base.pkg</pkg-ref>\n' +
+  '</installer-script>'
 
 module.exports = pack
 

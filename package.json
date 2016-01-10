@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "create mac osx flat packages (.pkg)",
   "main": "index.js",
+  "bin": "./cli.js",
   "scripts": {
     "test": "node test/test.js"
   },
@@ -28,6 +29,7 @@
     "cpio-stream": "^1.2.3",
     "debug": "^2.2.0",
     "duplexify": "^3.4.2",
+    "minimist": "^1.2.0",
     "mkbom": "^2.1.4",
     "pump": "^1.0.1",
     "rimraf": "^2.5.0",
