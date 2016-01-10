@@ -46,7 +46,7 @@ Packages <inputdir> as an osx flat package to stdout
 ## Modules
 
 You can also create your pkg files by using the components of this modules.
-Here's 3 modules that are essential to create an OSX flat package.
+Here are 3 modules that are essential for creating an OSX flat package.
 
 ### [cpiofs](http://npm.im/cpiofs)
 
