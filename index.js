@@ -19,19 +19,21 @@ var payloadTemplate =
   '\n</pkg-info>'
 
 var distributionTemplate =
-  '<?xml version="1.0" encoding="utf-8"?>\n' +
-  '<installer-script minSpecVersion="1.000000" authoringTool="com.apple.PackageMaker" authoringToolVersion="3.0.3" authoringToolBuild="174">\n' +
-  '    <title>{{title}}</title>\n' +
-  '    <options customize="never" allow-external-scripts="no"/>\n' +
-  '    <domains enable_anywhere="true"/>\n' +
-  '    <choices-outline>\n' +
-  '        <line choice="choice1"/>\n' +
-  '    </choices-outline>\n' +
-  '    <choice id="choice1" title="base">\n' +
-  '        <pkg-ref id="{{identifier}}"/>\n' +
-  '    </choice>' +
-  '    <pkg-ref id="{{identifier}}" installKBytes="{{installKBytes}}" version="1.3.0" auth="Root">#base.pkg</pkg-ref>\n' +
-  '</installer-script>'
+  '<?xml version="1.0" encoding="utf-8"?>' +
+  '\n<installer-script minSpecVersion="1.000000" authoringTool="com.apple.PackageMaker" authoringToolVersion="3.0.3" authoringToolBuild="174">' +
+  '\n    <title>{{title}}</title>' +
+  '\n    <options customize="never" allow-external-scripts="no"/>' +
+  '\n    <domains enable_anywhere="true"/>' +
+  '\n    <choices-outline>' +
+  '\n        <line choice="choice1"/>' +
+  '\n    </choices-outline>' +
+  '\n    <choice id="choice1" title="base">' +
+  '\n        <pkg-ref id="{{identifier}}"/>' +
+  '\n    </choice>' +
+  '\n    <pkg-ref id="{{identifier}}" installKBytes="{{installKBytes}}" version="1.3.0" auth="Root">#base.pkg</pkg-ref>' +
+  '\n</installer-script>'
+
+function noop () {}
 
 module.exports = pack
 
@@ -45,7 +47,6 @@ function pack (opts) {
     return output
   }
   var dir = path.resolve(process.cwd(), opts.dir)
-  var removeTmpDir = false
 
   var pack = cpiofs.pack(dir, { map: function (header) {
     header.uid = 0
@@ -59,9 +60,10 @@ function pack (opts) {
   if (!opts.tmpDir) {
     var tmpName = crypto.randomBytes(16).toString('hex')
     opts.tmpDir = path.resolve(path.join(os.tmpDir(), tmpName))
-    removeTmpDir = true
     fs.mkdir(opts.tmpDir, function (err) {
       if (err) output.emit('error', err)
+      output.on('end', function () { rimraf(opts.tmpDir, noop) })
+      output.on('error', function () { rimraf(opts.tmpDir, noop) })
       createDirectories()
     })
   } else {
@@ -145,15 +147,6 @@ function pack (opts) {
   function createXar () {
     debug('Pack xar...')
     output.setReadable(xar.pack([opts.tmpDir + '/base.pkg', opts.tmpDir + '/Resources', opts.tmpDir + '/Distribution'], {compression: 'none'}))
-  }
-
-  if (removeTmpDir) {
-    output.on('end', function () {
-      rimraf(opts.tmpDir, function noop () {})
-    })
-    output.on('error', function () {
-      rimraf(opts.tmpDir, function noop () {})
-    })
   }
 
   return output
