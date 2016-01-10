@@ -48,7 +48,7 @@ Packages <inputdir> as an osx flat package to stdout
 You can also create your pkg files by using the components of this modules.
 Here are 3 modules that are essential for creating an OSX flat package.
 
-### [cpiofs](http://npm.im/cpiofs)
+### [cpio-fs](http://npm.im/cpio-fs)
 
 Pack the Payload in the cpio format.
 
