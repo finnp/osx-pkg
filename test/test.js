@@ -13,7 +13,7 @@ var opts = {
 var testInstaller = __dirname + '/TestInstaller.pkg'
 
 test('create installer and inspect packed pkg', function (t) {
-  t.plan(6)
+  t.plan(5)
   var osxPack = pack(opts)
   pump(
     osxPack,
