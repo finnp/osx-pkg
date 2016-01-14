@@ -11,7 +11,8 @@ var opts = {
   dir: './root' // the contents of this dir will be installed in installLocation
   installLocation: '/Applications'
   identifier: 'org.myorg.myapp.pkg',
-  title: 'MyApp'
+  title: 'MyApp',
+  version: '1.0.0'
 }
 
 createPackage(opts)

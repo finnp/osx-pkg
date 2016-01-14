@@ -34,7 +34,9 @@
     "pump": "^1.0.1",
     "rimraf": "^2.5.0",
     "run-parallel": "^1.1.4",
-    "xar": "^1.1.1"
+    "xar": "^1.1.1",
+    "xml": "^1.0.0",
+    "xml2js": "^0.4.15"
   },
   "devDependencies": {
     "tape": "^4.4.0"

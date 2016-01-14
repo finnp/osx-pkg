@@ -12,27 +12,12 @@ var path = require('path')
 var crypto = require('crypto')
 var os = require('os')
 var rimraf = require('rimraf')
+var distribution = require('./distribution.js')
 
 var pkgInfoTemplate =
-  '<pkg-info format-version="2" identifier="{{identifier}}" version="1.3.0" install-location="{{installLocation}}" relocatable="true" auth="root">' +
+  '<pkg-info title="{{title}}" format-version="2" identifier="{{identifier}}" version="{{version}}" install-location="{{installLocation}}" relocatable="true" auth="root">' +
   '\n  <payload installKBytes="{{installKBytes}}" numberOfFiles="{{numberOfFiles}}"/>' +
   '\n</pkg-info>'
-
-// https://developer.apple.com/library/mac/documentation/DeveloperTools/Reference/DistributionDefinitionRef/Chapters/Distribution_XML_Ref.html
-var distributionTemplate =
-  '<?xml version="1.0" encoding="utf-8"?>' +
-  '\n<installer-script minSpecVersion="1.000000">' +
-  '\n    <title>{{title}}</title>' +
-  '\n    <options customize="allow" allow-external-scripts="no"/>' +
-  '\n    <domains enable_anywhere="true"/>' +
-  '\n    <choices-outline>' +
-  '\n        <line choice="choice1"/>' +
-  '\n    </choices-outline>' +
-  '\n    <choice id="choice1" title="{{title}}">' +
-  '\n        <pkg-ref id="{{identifier}}"/>' +
-  '\n    </choice>' +
-  '\n    <pkg-ref id="{{identifier}}" installKBytes="{{installKBytes}}" version="1.3.0" auth="Root">#base.pkg</pkg-ref>' +
-  '\n</installer-script>'
 
 function noop () {}
 
@@ -49,13 +34,19 @@ function pack (opts) {
       if (err) output.destroy('error', err)
       output.on('end', function () { rimraf(opts.tmpDir, noop) })
       output.on('error', function () { rimraf(opts.tmpDir, noop) })
+      startPacking()
     })
+  } else {
+    startPacking()
   }
 
-  packDir(opts.dir, opts.tmpDir, opts, function (err, cb) {
-    if (err) return output.destroy(err)
-    output.setReadable(xar.pack([opts.tmpDir + '/base.pkg', opts.tmpDir + '/Distribution'], {compression: 'none'}))
-  })
+  function startPacking () {
+    packDir(opts.dir, opts.tmpDir, opts, function (err, cb) {
+      if (err) return output.destroy(err)
+      debug('pack xar')
+      output.setReadable(xar.pack([opts.tmpDir + '/' + opts.identifier, opts.tmpDir + '/Distribution'], {compression: 'none'}))
+    })
+  }
 
   return output
 }
@@ -81,18 +72,19 @@ function packDir (inDir, outDir, opts, cb) {
   function createDirectories () {
     parallel([
       function (cb) {
-        fs.mkdir(outDir + '/base.pkg', cb)
+        fs.mkdir(outDir + '/' + opts.identifier, cb)
       }
     ], createPayload)
   }
 
   function createPayload () {
+    debug('create payload (cpio)')
     parallel([
       function (cb) {
         pump(
           pack,
           zlib.createGzip(),
-          fs.createWriteStream(outDir + '/base.pkg/Payload'),
+          fs.createWriteStream(outDir + '/' + opts.identifier + '/Payload'),
           cb
         )
       },
@@ -122,28 +114,29 @@ function packDir (inDir, outDir, opts, cb) {
     debug('Create PackageInfo', numFiles, 'files', totalSize, 'bytes')
     var packageInfo = pkgInfoTemplate
       .replace('{{identifier}}', opts.identifier)
+      .replace('{{version}}', opts.version || '0.0.1')
+      .replace('{{title}}', opts.title || opts.identifier)
       .replace('{{installKBytes}}', Math.ceil(totalSize / 1000))
       .replace('{{numberOfFiles}}', numFiles)
       .replace('{{installLocation}}', installLocation)
-    fs.writeFile(outDir + '/base.pkg/PackageInfo', packageInfo, createBOMFile)
+    fs.writeFile(outDir + '/' + opts.identifier + '/PackageInfo', packageInfo, createBOMFile)
   }
 
   function createBOMFile () {
     debug('Create BOMFile...')
     pump(
       mkbom(dir, {uid: 0, gid: 80}),
-      fs.createWriteStream(outDir + '/base.pkg/Bom'),
+      fs.createWriteStream(outDir + '/' + opts.identifier + '/Bom'),
       createDistributionFile
     )
   }
 
-  function createDistributionFile () {
+  function createDistributionFile (err) {
     debug('Create Distribution file...')
-    var distribution = distributionTemplate
-      .replace(new RegExp('{{identifier}}', 'g'), opts.identifier)
-      .replace(new RegExp('{{title}}', 'g'), opts.title)
-      .replace(new RegExp('{{installKBytes}}', 'g'), Math.ceil(totalSize / 1000))
-    fs.writeFile(outDir + '/Distribution', distribution, function () {
+    if (err) return cb(err)
+
+    distribution(outDir, function (err) {
+      if (err) return cb(err)
       cb(null)
     })
   }
