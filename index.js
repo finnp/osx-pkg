@@ -22,7 +22,7 @@ var pkgInfoTemplate =
 function noop () {}
 
 module.exports = pack
-module.exports.packDir = packDir
+module.exports.addComponent = addComponent
 
 function pack (opts) {
   var output = duplexify()
@@ -41,7 +41,7 @@ function pack (opts) {
   }
 
   function startPacking () {
-    packDir(opts.dir, opts.tmpDir, opts, function (err, cb) {
+    addComponent(opts.dir, opts.tmpDir, opts, function (err, cb) {
       if (err) return output.destroy(err)
       debug('pack xar')
       output.setReadable(xar.pack([opts.tmpDir + '/' + opts.identifier, opts.tmpDir + '/Distribution'], {compression: 'none'}))
@@ -51,7 +51,7 @@ function pack (opts) {
   return output
 }
 
-function packDir (inDir, outDir, opts, cb) {
+function addComponent (inDir, outDir, opts, cb) {
   var installLocation = opts.installLocation || '/'
   if (!inDir) {
     return cb(new Error('Missed specify the input dir'))

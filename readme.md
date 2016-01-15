@@ -3,8 +3,10 @@
 
 Create OSX flat packages (.pkg) with pure JS.
 
+## example
+
 ```js
-var createPackage = require('osx-pkg')
+var osxpkg = require('osx-pkg')
 var fs = require('fs')
 
 var opts = {
@@ -15,21 +17,53 @@ var opts = {
   version: '1.0.0'
 }
 
-createPackage(opts)
+osxpkg(opts)
  .pipe(fs.createWriteStream('Installer.pkg'))
 ```
 
 The packaging is not done in a complete streaming fashion, but
 a temporary folder will be used.
 
-## Options
+## API
 
+## `osxpkg(opts)`
+
+Returns a readable stream that you can read the finished Installer from.
+
+
+### Options
 - `dir` Path to a directory whose contents are going to be installed in installLocation
 - `identifier` Identifier for your package, e.g. `org.myorg.myapp.pkg`
 - `title` The Title of your package
 
 - `installLocation` (defaults to `/`)
 - `tmpDir` The unpackaged pkg will be created here (defaults to a newly created directory in the tmp dir)
+
+
+## `osxpkg.addComponent(inDir, outDir, opts, cb)`
+
+The final `.pkg` is just a `xar` archived directory with the following structure:
+```
+Installer.pkg
+- Distribution
+- component1.pkg
+  - Bom
+  - Payload
+  - PackageInfo
+- component2.pkg
+  - Bom
+  - Payload
+  - PackageInfo
+- Resources (optional)
+```
+
+These components are actually called packages as well. But I am calling them
+components to not confuse them with the resulting package...
+
+Given an `inDir` and an `outDir`, this function will package the contents of `inDir`
+as a component and add it to `outDir`. So it allows to add multiple components
+to an installer before creating the `Distribution` file and finalizing it with `xar`.
+
 
 ## CLI
 
