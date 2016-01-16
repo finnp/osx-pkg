@@ -21,10 +21,12 @@ var pkgInfoTemplate =
 
 function noop () {}
 
-module.exports = pack
+module.exports = osxpkg
 module.exports.addComponent = addComponent
+module.exports.addDistribution = distribution
+module.exports.pack = pack
 
-function pack (opts) {
+function osxpkg (opts) {
   var output = duplexify()
 
   if (!opts.tmpDir) {
@@ -43,8 +45,10 @@ function pack (opts) {
   function startPacking () {
     addComponent(opts.dir, opts.tmpDir, opts, function (err, cb) {
       if (err) return output.destroy(err)
-      debug('pack xar')
-      output.setReadable(xar.pack([opts.tmpDir + '/' + opts.identifier, opts.tmpDir + '/Distribution'], {compression: 'none'}))
+      distribution(opts.tmpDir, function (err) {
+        if (err) output.destroy('error', err)
+        output.setReadable(pack(opts.tmpDir))
+      })
     })
   }
 
@@ -127,17 +131,20 @@ function addComponent (inDir, outDir, opts, cb) {
     pump(
       mkbom(dir, {uid: 0, gid: 80}),
       fs.createWriteStream(outDir + '/' + opts.identifier + '/Bom'),
-      createDistributionFile
+      cb
     )
   }
+}
 
-  function createDistributionFile (err) {
-    debug('Create Distribution file...')
-    if (err) return cb(err)
-
-    distribution(outDir, function (err) {
-      if (err) return cb(err)
-      cb(null)
+function pack (dir, cb) {
+  debug('pack xar')
+  var output = duplexify()
+  fs.readdir(dir, function (err, files) {
+    if (err) return output.destroy(err)
+    files = files.map(function (file) {
+      return path.join(dir, file)
     })
-  }
+    output.setReadable(xar.pack(files, {compression: 'none'}))
+  })
+  return output
 }

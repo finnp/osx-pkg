@@ -24,6 +24,31 @@ osxpkg(opts)
 The packaging is not done in a complete streaming fashion, but
 a temporary folder will be used.
 
+## example with multiple components
+
+```js 
+var osxpkg = require('osx-pkg')
+var fs = require('fs')
+
+var pkgDir = './out'
+
+fs.mkdirSync(pkgDir)
+
+osxpkg.addComponent(pkgDir, './build/CoolApp.app', {...}, function (err) {
+  if (err) return console.error(err)
+  osxpkg.addComponent(pkgDir, './build/CoolAppCompanion.app', {...}, function (err) {
+    if (err) return console.error(err)
+    osxpkg.addDistribution(pkgDir, function (err) {
+      if (err) return console.error(err)
+      oskpkg.pack(pkgDir).pipe(fs.createWriteStream('Installer.pkg'))
+    })
+    console.log('DONE')
+  })
+})
+
+
+```
+
 ## API
 
 ## `osxpkg(opts)`
